@@ -1,12 +1,6 @@
-# Dark Reader browser extension, packaged as an *unpacked* Manifest V3
-# directory suitable for Chromium `--load-extension=<dir>` (the form
-# agent-browser / CloakBrowser use via `--extension` / AGENT_BROWSER_EXTENSIONS).
-#
-# Dark Reader is MIT-licensed and ships a prebuilt Chrome MV3 zip as a GitHub
-# release asset (darkreader-chrome-mv3.zip) with manifest.json at its root, so
-# there is nothing to build — we just fetch the pinned zip and unpack it into
-# $out. `nix-update` tracks new GitHub releases; downstream flakes pick bumps
-# up with a plain `nix flake update`.
+# Dark Reader, packaged as an unpacked Chromium MV3 extension directory for
+# --load-extension. Fetches the prebuilt darkreader-chrome-mv3.zip release
+# asset (manifest.json at root) and unpacks it into $out.
 {
   lib,
   stdenvNoCC,
@@ -26,8 +20,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [ unzip ];
 
-  # The asset is a zip with manifest.json at the top level; unpack it as the
-  # unpacked extension directory.
   unpackPhase = ''
     runHook preUnpack
     mkdir -p source
@@ -44,8 +36,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runHook preInstall
     mkdir -p "$out"
     cp -r . "$out/"
-    # Sanity check: an unpacked Chromium extension must have manifest.json at
-    # the directory root or `--load-extension` will silently ignore it.
     test -f "$out/manifest.json"
     runHook postInstall
   '';
