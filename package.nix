@@ -29,6 +29,14 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   sourceRoot = "source";
 
+  # Suppress the darkreader.org "goodluck" welcome tab that the service worker
+  # opens on install (fires every launch since agent-browser uses a fresh
+  # --user-data-dir each time).
+  postPatch = ''
+    substituteInPlace background/index.js \
+      --replace-fail "chrome.tabs.create({url: getHelpURL()})" "void 0"
+  '';
+
   dontConfigure = true;
   dontBuild = true;
 
