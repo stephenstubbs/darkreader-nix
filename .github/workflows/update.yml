@@ -1,0 +1,46 @@
+name: Update package
+
+# Bumps package.nix to the latest Dark Reader release on GitHub, verifies the
+# package still builds, and commits directly to main. Downstream flakes pick
+# the bump up with a plain `nix flake update`.
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: nixbuild/nix-quick-install-action@9f63be77f412a248c9d9a65a4c82cf066cdf8f0c # v35
+
+      - name: Update to latest GitHub release
+        id: update
+        run: |
+          current=$(nix eval --raw .#darkreader.version)
+          latest=$(curl -fsSL https://api.github.com/repos/darkreader/darkreader/releases/latest | jq -r .tag_name | sed 's/^v//')
+          echo "current=$current latest=$latest"
+          if [ "$current" = "$latest" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          nix run nixpkgs#nix-update -- --flake --version "$latest" darkreader
+          nix build .#darkreader
+          {
+            echo "changed=true"
+            echo "current=$current"
+            echo "latest=$latest"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "darkreader: ${{ steps.update.outputs.current }} -> ${{ steps.update.outputs.latest }}"
+          git push
