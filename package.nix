@@ -11,11 +11,11 @@
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "darkreader-chrome-mv3";
-  version = "4.9.128";
+  version = "4.9.129";
 
   src = fetchurl {
     url = "https://github.com/darkreader/darkreader/releases/download/v${finalAttrs.version}/darkreader-chrome-mv3.zip";
-    hash = "sha256-Jz1u3Muq9/LtJIK6AcjUtXTurKgzVeGGF8qli0EihxE=";
+    hash = "sha256-IOeZPu6AFffbGHSO6jZmFt/QXsR377e+auUtKyIbCmQ=";
   };
 
   nativeBuildInputs = [ unzip ];
